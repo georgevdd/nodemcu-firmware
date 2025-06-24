@@ -470,6 +470,54 @@ sint16 ICACHE_FLASH_ATTR espconn_recv(struct espconn *espconn, void *mem, size_t
 	return ESPCONN_ARG;
 }
 
+sint16 ICACHE_FLASH_ATTR espconn_recved_len(struct espconn *espconn)
+{
+	espconn_msg *pnode = NULL;
+	bool value = false;
+
+	if (espconn == NULL)
+		return ESPCONN_ARG;
+
+	/*Find the node depend on the espconn message*/
+	value = espconn_find_connection(espconn, &pnode);
+	if (value && espconn->type == ESPCONN_TCP){
+		if (pnode->readbuf != NULL){
+			return (sint16)ringbuf_bytes_used(pnode->readbuf);
+		} else{
+			return 0;
+		}
+	}
+
+	return ESPCONN_ARG;
+}
+
+/******************************************************************************
+ * FunctionName : espconn_sendto
+ * Description  : send data for UDP
+ * Parameters   : espconn -- espconn to set for UDP
+ *                psent -- data to send
+ *                length -- length of data to send
+ * Returns      : error
+*******************************************************************************/
+sint16 ICACHE_FLASH_ATTR
+espconn_sendto(struct espconn *espconn, uint8 *psent, uint16 length)
+{
+	espconn_msg *pnode = NULL;
+	bool value = false;
+	err_t error = ESPCONN_OK;
+
+	if (espconn == NULL || psent == NULL || length == 0) {
+		return ESPCONN_ARG;
+	}
+
+	/*Find the node depend on the espconn message*/
+	value = espconn_find_connection(espconn, &pnode);
+	if (value && espconn->type == ESPCONN_UDP)
+		return espconn_udp_sendto(pnode, psent, length);
+	else
+		return ESPCONN_ARG;
+}
+
 /******************************************************************************
  * FunctionName : espconn_send
  * Description  : sent data for client or server
@@ -703,7 +751,9 @@ espconn_get_connection_info(struct espconn *pespconn, remot_info **pcon_info, ui
 					premot[pespconn->link_cnt].state = plist->pespconn->state;
 					premot[pespconn->link_cnt].remote_port = plist->pcommon.remote_port;
 					os_memcpy(premot[pespconn->link_cnt].remote_ip,	plist->pcommon.remote_ip, 4);
-					pespconn->link_cnt ++;
+					if (!plist->close_flag) {
+					    pespconn->link_cnt ++;
+					}
 				}
 				plist = plist->pnext;
 			}
