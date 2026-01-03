@@ -12,7 +12,7 @@
 #     a generated lib/image xxx.a ()
 #
 ifndef PDIR
-GEN_LIBS = libgdbstub.a
+# GEN_LIBS = libgdbstub.a
 endif
 
 
