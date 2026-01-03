@@ -11,12 +11,16 @@
 #include "ets_sys.h"
 #include "eagle_soc.h"
 #include "gpio.h"
+#include "xtensa/config/core-isa.h"
 #include "xtensa/corebits.h"
 #include "driver/uart.h"
 
 #include "gdbstub.h"
 #include "gdbstub-entry.h"
 #include "gdbstub-cfg.h"
+
+void ets_wdt_enable(void);
+void ets_wdt_disable(void);
 
 
 //From xtruntime-frames.h
