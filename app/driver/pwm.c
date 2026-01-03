@@ -316,7 +316,7 @@ pwm_get_freq(uint8 channel)
  * Parameters   : NONE
  * Returns      : NONE
 *******************************************************************************/
-LOCAL void ICACHE_RAM_ATTR
+LOCAL void //ICACHE_RAM_ATTR
 pwm_tim1_intr_handler(os_param_t p)
 {
   (void)p;
