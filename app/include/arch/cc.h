@@ -42,12 +42,13 @@
 
 //#define LWIP_PROVIDE_ERRNO
 
-#if (1)
-#define BYTE_ORDER LITTLE_ENDIAN
-#else
-#define BYTE_ORDER BIG_ENDIAN
+#ifndef BYTE_ORDER
+#  if 1
+#    define BYTE_ORDER LITTLE_ENDIAN
+#  else
+#    define BYTE_ORDER BIG_ENDIAN
+#  endif
 #endif
-
 
 typedef uint8_t    u8_t;
 typedef  int8_t    s8_t;

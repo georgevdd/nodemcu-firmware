@@ -12,6 +12,9 @@
  * FIXME: support null characters in responses.
  */
 
+/* To use strcasestr(): */
+#define _GNU_SOURCE
+
 #include "osapi.h"
 #include <stdio.h>
 #include <stdlib.h>
