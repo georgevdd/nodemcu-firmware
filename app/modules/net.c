@@ -817,7 +817,7 @@ static int net_multicastJoinLeave( lua_State *L, int join) {
 	  if(! lua_isstring(L,1) ) return luaL_error( L, "wrong arg type" );
 	  if_ip = luaL_checklstring( L, 1, &il );
 	  if (if_ip != NULL)
-		 if ( if_ip[0] == '\0' || stricmp(if_ip,"any") == 0)
+		 if ( if_ip[0] == '\0' || strcasecmp(if_ip,"any") == 0)
 	     {
 			 if_ip = "0.0.0.0";
 			 il = 7;
