@@ -89,6 +89,8 @@ ifndef $(OS)
   # Assume Windows if MAKE_HOST contains "indows" and Linux otherwise
   ifneq (,$(findstring indows,$(MAKE_HOST)))
     OS := windows
+  else ifeq (Darwin, $(shell uname -s))
+    OS := macos
   else
     OS := linux
   endif
@@ -129,6 +131,8 @@ ifneq (,$(findstring indows,$(OS)))
   ifeq ($(PROCESSOR_ARCHITECTURE),x86)
 # ->IA32
   endif
+
+  GNU_SED = sed
   #---------------- END UNTESTED ---------------- We are under windows.
 else
   # We are under other system, may be Linux. Assume using gcc.
@@ -140,9 +144,29 @@ else
       TOOLCHAIN_VERSION = 20190731.0
       GCCTOOLCHAIN      = linux-x86_64-$(TOOLCHAIN_VERSION)
       TOOLCHAIN_ROOT    = $(TOP_DIR)/tools/toolchains/esp8266-$(GCCTOOLCHAIN)
-      GITHUB_TOOLCHAIN  = https://github.com/jmattsson/esp-toolchains
+      GITHUB_TOOLCHAIN_REPO  = https://github.com/jmattsson/esp-toolchains
+      GITHUB_TOOLCHAIN = $(GITHUB_TOOLCHAIN_REPO)/releases/download/$(GCCTOOLCHAIN)/toolchain-esp8266-$(GCCTOOLCHAIN).tar.xz
       export PATH:=$(PATH):$(TOOLCHAIN_ROOT)/bin
     endif
+    GNU_SED = sed
+  else ifeq ($(OS), macos)
+    TOOLCHAIN_KIND := espressif-ctng
+    ifndef TOOLCHAIN_ROOT
+      TOOLCHAIN_VERSION = 13.2.0_20240530
+      GCCTOOLCHAIN      = $(TOOLCHAIN_VERSION)-aarch64-apple-darwin
+      TOOLCHAIN_ROOT    = $(TOP_DIR)/tools/toolchains/xtensa-esp-elf
+      GITHUB_TOOLCHAIN_REPO  = https://github.com/espressif/crosstool-NG
+      GITHUB_TOOLCHAIN = $(GITHUB_TOOLCHAIN_REPO)/releases/download/esp-$(TOOLCHAIN_VERSION)/xtensa-esp-elf-$(GCCTOOLCHAIN).tar.xz
+
+      # The Espressif crosstool-NG toolchain doesn't come with ESP8266 libraries
+      # so we still need to find those in the older toolchain.
+      EXTRA_LIBS_TOOLCHAIN_ROOT = $(TOP_DIR)/tools/toolchains/xtensa-lx106-elf
+      GITHUB_EXTRA_LIBS_TOOLCHAIN = https://dl.espressif.com/dl/xtensa-lx106-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
+    endif
+    export PATH:=$(PATH):$(TOOLCHAIN_ROOT)/bin
+    # To get this:
+    #   brew install gnu-sed
+    GNU_SED = gsed
   endif
 
   ifndef COMPORT
@@ -152,12 +176,30 @@ else
   endif
 
   CCFLAGS += -ffunction-sections -fno-jump-tables -fdata-sections
-  AR      = xtensa-lx106-elf-ar
-  CC      = $(WRAPCC) xtensa-lx106-elf-gcc
-  CXX     = $(WRAPCC) xtensa-lx106-elf-g++
-  NM      = xtensa-lx106-elf-nm
-  CPP     = $(WRAPCC) xtensa-lx106-elf-gcc -E
-  OBJCOPY = xtensa-lx106-elf-objcopy
+
+  ifeq ($(TOOLCHAIN_KIND),espressif-ctng)
+    AR      = xtensa-esp8266-elf-ar
+    CC      = $(WRAPCC) xtensa-esp8266-elf-gcc
+    CXX     = $(WRAPCC) xtensa-esp8266-elf-g++
+    NM      = xtensa-esp8266-elf-nm
+    CPP     = $(WRAPCC) xtensa-esp8266-elf-gcc -E
+    OBJCOPY = xtensa-esp8266-elf-objcopy
+    # Configure the toolchain to use the ESP8266 plugin.
+    CCFLAGS += -mdynconfig=$(TOOLCHAIN_ROOT)/lib/xtensa_esp8266.so
+    LDFLAGS += -mdynconfig=$(TOOLCHAIN_ROOT)/lib/xtensa_esp8266.so
+    ifneq ($(EXTRA_LIBS_TOOLCHAIN_ROOT),"")
+      # The Espressif crosstool-NG toolchain doesn't come with ESP8266 libraries
+      # so we still need to find those in the older toolchain.
+      LDFLAGS += -L$(EXTRA_LIBS_TOOLCHAIN_ROOT)/xtensa-lx106-elf/lib
+    endif
+  else
+    AR      = xtensa-lx106-elf-ar
+    CC      = $(WRAPCC) xtensa-lx106-elf-gcc
+    CXX     = $(WRAPCC) xtensa-lx106-elf-g++
+    NM      = xtensa-lx106-elf-nm
+    CPP     = $(WRAPCC) xtensa-lx106-elf-gcc -E
+    OBJCOPY = xtensa-lx106-elf-objcopy
+  endif
   FIRMWAREDIR = ../bin/
   WGET = wget --tries=10 --timeout=15 --waitretry=30 --read-timeout=20 --retry-connrefused
 endif
@@ -274,7 +316,7 @@ endif # TARGET
 #
 
 ifndef TARGET
-all: toolchain sdk_pruned pre_build buildinfo .subdirs
+all: toolchain maybe_extra_libs_toolchain sdk_pruned pre_build buildinfo .subdirs
 else
 all: .subdirs $(OBJS) $(OLIBS) $(OIMAGES) $(OBINS) $(SPECIAL_MKTARGETS)
 endif
@@ -282,13 +324,12 @@ endif
 .PHONY: sdk_extracted
 .PHONY: sdk_pruned
 .PHONY: toolchain
+.PHONY: maybe_extra_libs_toolchain
 
 sdk_extracted: $(TOP_DIR)/sdk/.extracted-$(SDK_VER)
 sdk_pruned: sdk_extracted toolchain $(TOP_DIR)/sdk/.pruned-$(SDK_VER)
 
 ifdef GITHUB_TOOLCHAIN
-  TOOLCHAIN_ROOT := $(TOP_DIR)/tools/toolchains/esp8266-linux-x86_64-$(TOOLCHAIN_VERSION)
-
 toolchain: $(TOOLCHAIN_ROOT)/bin $(ESPTOOL)
 
 $(TOOLCHAIN_ROOT)/bin: $(TOP_DIR)/cache/toolchain-esp8266-$(GCCTOOLCHAIN).tar.xz
@@ -300,11 +341,29 @@ $(TOOLCHAIN_ROOT)/bin: $(TOP_DIR)/cache/toolchain-esp8266-$(GCCTOOLCHAIN).tar.xz
 $(TOP_DIR)/cache/toolchain-esp8266-$(GCCTOOLCHAIN).tar.xz:
 	mkdir -p $(TOP_DIR)/cache
 	$(summary) WGET $(patsubst $(TOP_DIR)/%,%,$@)
-	$(WGET) $(GITHUB_TOOLCHAIN)/releases/download/$(GCCTOOLCHAIN)/toolchain-esp8266-$(GCCTOOLCHAIN).tar.xz -O $@ \
+	$(WGET) $(GITHUB_TOOLCHAIN) -O $@ \
 	|| { rm -f "$@"; exit 1; }
 else
 toolchain: $(ESPTOOL)
-endif
+endif  # GITHUB_TOOLCHAIN
+
+ifdef GITHUB_EXTRA_LIBS_TOOLCHAIN
+maybe_extra_libs_toolchain: $(EXTRA_LIBS_TOOLCHAIN_ROOT)/xtensa-lx106-elf/lib
+
+$(EXTRA_LIBS_TOOLCHAIN_ROOT)/xtensa-lx106-elf/lib: $(TOP_DIR)/cache/xtensa-lx106-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
+	mkdir -p $(TOP_DIR)/tools/toolchains/
+	$(summary) EXTRACT $(patsubst $(TOP_DIR)/%,%,$<)
+	tar -xJf $< -C $(TOP_DIR)/tools/toolchains/
+	touch $@
+
+$(TOP_DIR)/cache/xtensa-lx106-elf-gcc8_4_0-esp-2020r3-macos.tar.gz:
+	mkdir -p $(TOP_DIR)/cache
+	$(summary) WGET $(patsubst $(TOP_DIR)/%,%,$@)
+	$(WGET) $(GITHUB_EXTRA_LIBS_TOOLCHAIN) -O $@ \
+	|| { rm -f "$@"; exit 1; }
+else
+maybe_extra_libs_toolchain:
+endif  # GITHUB_EXTRA_LIBS_TOOLCHAIN
 
 $(ESPTOOL): $(TOP_DIR)/cache/esptool/v$(ESPTOOL_VER).tar.gz
 	mkdir -p $(TOP_DIR)/tools/toolchains/
@@ -333,9 +392,10 @@ $(TOP_DIR)/sdk/.extracted-$(SDK_VER): $(TOP_DIR)/cache/$(SDK_FILE_VER).zip
 $(TOP_DIR)/sdk/.pruned-$(SDK_VER):
 	rm -f $(SDK_DIR)/lib/liblwip.a $(SDK_DIR)/lib/libssl.a $(SDK_DIR)/lib/libmbedtls.a
 	$(summary) PRUNE libmain.a libc.a
-	echo "$(PATH)"
-	$(AR) d $(SDK_DIR)/lib/libmain.a time.o
-	$(AR) d $(SDK_DIR)/lib/libc.a lib_a-time.o
+	# These need to run in subshells so as to be able to observe the updated PATH that
+	# is computed above.
+	$(shell PATH=$(PATH) $(AR) d $(SDK_DIR)/lib/libmain.a time.o)
+	$(shell PATH=$(PATH) $(AR) d $(SDK_DIR)/lib/libc.a lib_a-time.o)
 	touch $@
 
 $(TOP_DIR)/cache/$(SDK_FILE_VER).zip:
@@ -428,7 +488,7 @@ $(OBJODIR)/%.d: %.c
 	$(summary) DEPEND: CC $(patsubst $(TOP_DIR)/%,%,$(CURDIR))/$<
 	@set -e; rm -f $@; \
 	$(CC) -M $(CFLAGS) $< > $@.$$$$; \
-	sed 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
+	$(GNU_SED) 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 $(OBJODIR)/%.o: %.cpp
@@ -440,7 +500,7 @@ $(OBJODIR)/%.d: %.cpp
 	@mkdir -p $(OBJODIR);
 	$(summary) DEPEND: CXX $(patsubst $(TOP_DIR)/%,%,$(CURDIR))/$<
 	@set -e; rm -f $@; \
-	sed 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
+	$(GNU_SED) 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 $(OBJODIR)/%.o: %.s
@@ -452,7 +512,7 @@ $(OBJODIR)/%.d: %.s
 	@mkdir -p $(dir $@); \
 	set -e; rm -f $@; \
 	$(CC) -M $(CFLAGS) $< > $@.$$$$; \
-	sed 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
+	$(GNU_SED) 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 $(OBJODIR)/%.o: %.S
@@ -464,7 +524,7 @@ $(OBJODIR)/%.d: %.S
 	@mkdir -p $(dir $@); \
 	set -e; rm -f $@; \
 	$(CC) -M $(CFLAGS) $< > $@.$$$$; \
-	sed 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
+	$(GNU_SED) 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 $(foreach lib,$(GEN_LIBS),$(eval $(call ShortcutRule,$(lib),$(LIBODIR))))
