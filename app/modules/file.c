@@ -64,9 +64,9 @@ static void table2tm( lua_State *L, vfs_time *tm )
   lua_pop( L, 6 );
 }
 
-static sint32_t file_rtc_cb( vfs_time *tm )
+static int32_t file_rtc_cb( vfs_time *tm )
 {
-  sint32_t res = VFS_RES_ERR;
+  int32_t res = VFS_RES_ERR;
 
   if (rtc_cb_ref != LUA_NOREF) {
     lua_State *L = lua_getstate();
