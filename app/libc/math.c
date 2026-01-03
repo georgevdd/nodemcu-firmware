@@ -57,7 +57,7 @@ static const double
 
 double pow(double x, double y)
 {
-    double frexp(), g, ldexp(), r, u1, u2, v, w, w1, w2, y1, y2, z;
+    double frexp(double, int*), g, ldexp(double, int), r, u1, u2, v, w, w1, w2, y1, y2, z;
     int iw1, m, p;
     bool flipsignal = false;
 

@@ -16,8 +16,8 @@
 #define   espconn_manual_recv_disabled(espconn)  (((espconn)->pcommon.espconn_opt & ESPCONN_MANUALRECV) != 0)
 #define   espconn_manual_recv_enabled(espconn)  (((espconn)->pcommon.espconn_opt & ESPCONN_MANUALRECV) == 0)
 
-extern int ets_task();
-extern int ets_post();
+extern int ets_task(ETSTask task, uint8 prio, ETSEvent *queue, uint8 qlen);
+extern int ets_post(uint8_t prio, ETSSignal sig, ETSParam par);
 
 /******************************************************************************
  * FunctionName : espconn_pbuf_delete
