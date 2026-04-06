@@ -281,7 +281,7 @@ static err_t net_accept_cb(void *arg, struct tcp_pcb *newpcb, err_t err) {
   nud->tcp_pcb->keep_cnt = 1;
   tcp_accepted(ud->tcp_pcb);
 
-  lua_call(L, 1, 0);
+  lua_call(L, 1, 0);  // cb_accept_ref, == listen callback
 
   return net_connected_cb(nud, nud->tcp_pcb, ERR_OK);
 }
