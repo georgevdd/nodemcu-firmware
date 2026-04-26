@@ -30,14 +30,14 @@ endif
 ifndef PDIR # {
 GEN_IMAGES= eagle.app.v6.out
 GEN_BINS= eagle.app.v6.bin
-OPT_MKTARGETS        := coap dht http mqtt pcm sjson tsl2561 websocket
-OPT_MKLIBTARGETS     := u8g2 ucg
-SEL_MKTARGETS        := $(shell $(CC) -E -dM include/user_modules.h | sed -n '/^\#define LUA_USE_MODULES_/{s/.\{24\}\(.*\)/\L\1/; p}')
-OPT_SEL_MKLIBTARGETS := $(foreach tgt,$(OPT_MKLIBTARGETS),$(findstring $(tgt), $(SEL_MKTARGETS)))
-OPT_SEL_MKTARGETS    := $(foreach tgt,$(OPT_MKTARGETS),$(findstring $(tgt), $(SEL_MKTARGETS))) \
+OPT_MKTARGETS        = coap dht http mqtt pcm sjson tsl2561 websocket
+OPT_MKLIBTARGETS     = u8g2 ucg
+SEL_MKTARGETS        = $(shell $(CC) -E -dM include/user_modules.h | $(GNU_SED) -n '/^\#define LUA_USE_MODULES_/{s/.\{24\}\(.*\)/\L\1/; p}')
+OPT_SEL_MKLIBTARGETS = $(foreach tgt,$(OPT_MKLIBTARGETS),$(findstring $(tgt), $(SEL_MKTARGETS)))
+OPT_SEL_MKTARGETS    = $(foreach tgt,$(OPT_MKTARGETS),$(findstring $(tgt), $(SEL_MKTARGETS))) \
                         $(foreach tgt,$(OPT_SEL_MKLIBTARGETS),$(tgt)lib)
-OPT_SEL_COMPONENTS   := $(foreach tgt,$(OPT_SEL_MKTARGETS),$(tgt)/lib$(tgt).a)
-SPECIAL_MKTARGETS    :=$(APP_MKTARGETS)
+OPT_SEL_COMPONENTS   = $(foreach tgt,$(OPT_SEL_MKTARGETS),$(tgt)/lib$(tgt).a)
+SPECIAL_MKTARGETS    =$(APP_MKTARGETS)
 
 SUBDIRS= 					\
 	user 					\
