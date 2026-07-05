@@ -242,10 +242,12 @@ typedef uint32 socklen_t;
 #define O_NDELAY    1 /* same as O_NONBLOCK, for compatibility */
 #endif
 
+#ifndef _TIMEVAL_DEFINED
 struct timeval {
 	long tv_sec; /* seconds */
 	long tv_usec; /* and microseconds */
 };
+#endif  // _TIMEVAL_DEFINED
 /* Flags for struct netconn.flags (u8_t) */
 /** TCP: when data passed to netconn_write doesn't fit into the send buffer,
  this temporarily stores whether to wake up the original application task

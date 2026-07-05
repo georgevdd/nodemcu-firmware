@@ -53,7 +53,6 @@ SUBDIRS= 					\
 	spiffs 					\
 	net					\
 	fatfs					\
-	esp-gdbstub				\
 	pm					\
 	uzlib					\
 	$(OPT_SEL_MKTARGETS)
@@ -83,7 +82,6 @@ COMPONENTS_eagle.app.v6 = 		\
 	spiffs/spiffs.a 			\
 	fatfs/libfatfs.a			\
 	pm/libpm.a					\
-	esp-gdbstub/libgdbstub.a	\
 	net/libnodemcu_net.a		\
 	mbedtls/libmbedtls.a    	\
 	modules/libmodules.a		\

@@ -167,12 +167,30 @@ else
   endif
 
   CCFLAGS += -ffunction-sections -fno-jump-tables -fdata-sections
-  AR      = xtensa-lx106-elf-ar
-  CC      = $(WRAPCC) xtensa-lx106-elf-gcc
-  CXX     = $(WRAPCC) xtensa-lx106-elf-g++
-  NM      = xtensa-lx106-elf-nm
-  CPP     = $(WRAPCC) xtensa-lx106-elf-gcc -E
-  OBJCOPY = xtensa-lx106-elf-objcopy
+
+  ifeq ($(TOOLCHAIN_KIND),espressif-ctng)
+    AR      = xtensa-esp8266-elf-ar
+    CC      = $(WRAPCC) xtensa-esp8266-elf-gcc
+    CXX     = $(WRAPCC) xtensa-esp8266-elf-g++
+    NM      = xtensa-esp8266-elf-nm
+    CPP     = $(WRAPCC) xtensa-esp8266-elf-gcc -E
+    OBJCOPY = xtensa-esp8266-elf-objcopy
+    # Configure the toolchain to use the ESP8266 plugin.
+    CCFLAGS += -mdynconfig=$(TOOLCHAIN_ROOT)/lib/xtensa_esp8266.so
+    LDFLAGS += -mdynconfig=$(TOOLCHAIN_ROOT)/lib/xtensa_esp8266.so
+    ifneq ($(EXTRA_LIBS_TOOLCHAIN_ROOT),"")
+      # The Espressif crosstool-NG toolchain doesn't come with ESP8266 libraries
+      # so we still need to find those in the older toolchain.
+      LDFLAGS += -L$(EXTRA_LIBS_TOOLCHAIN_ROOT)/xtensa-lx106-elf/lib
+    endif
+  else
+    AR      = xtensa-lx106-elf-ar
+    CC      = $(WRAPCC) xtensa-lx106-elf-gcc
+    CXX     = $(WRAPCC) xtensa-lx106-elf-g++
+    NM      = xtensa-lx106-elf-nm
+    CPP     = $(WRAPCC) xtensa-lx106-elf-gcc -E
+    OBJCOPY = xtensa-lx106-elf-objcopy
+  endif
   FIRMWAREDIR = ../bin/
   WGET = wget --tries=10 --timeout=15 --waitretry=30 --read-timeout=20 --retry-connrefused
 endif

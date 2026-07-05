@@ -272,7 +272,7 @@ struct Smain {
  char** argv;
 };
 
-#if defined(_MSC_VER) || defined(__MINGW32__)
+#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__APPLE__)
 typedef unsigned int uint;
 #endif
 extern uint dumpToFlashImage (lua_State* L,const Proto *main, lua_Writer w,

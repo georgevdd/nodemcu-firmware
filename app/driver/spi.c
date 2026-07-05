@@ -471,7 +471,7 @@ void spi_slave_init(uint8 spi_no)
 //////**************RUN WHEN SLAVE RECIEVE*******************///////
    //tow lines below is to configure spi timing.
     SET_PERI_REG_MASK(SPI_CTRL2(spi_no),(0x2&SPI_MOSI_DELAY_NUM)<<SPI_MOSI_DELAY_NUM_S) ;//delay num
-    os_printf("SPI_CTRL2 is %08x\n",READ_PERI_REG(SPI_CTRL2(spi_no)));
+    os_printf("SPI_CTRL2 is %08lu\n",READ_PERI_REG(SPI_CTRL2(spi_no)));
     WRITE_PERI_REG(SPI_CLOCK(spi_no), 0);
 
 
