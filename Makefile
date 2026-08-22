@@ -154,6 +154,10 @@ else
   CCFLAGS += -ffunction-sections -fno-jump-tables -fdata-sections
 
   ifeq ($(TOOLCHAIN_KIND),espressif-ctng)
+    ifndef TOOLCHAIN_ROOT
+      $(error TOOLCHAIN_ROOT must point to an Espressif crosstool-NG toolchain)
+    endif
+
     AR      = xtensa-esp8266-elf-ar
     CC      = $(WRAPCC) xtensa-esp8266-elf-gcc
     CXX     = $(WRAPCC) xtensa-esp8266-elf-g++
@@ -168,6 +172,8 @@ else
       # so we still need to find those in the older toolchain.
       LDFLAGS += -L$(EXTRA_LIBS_TOOLCHAIN_ROOT)/xtensa-lx106-elf/lib
     endif
+
+    export PATH:=$(PATH):$(TOOLCHAIN_ROOT)/bin
   else
     AR      = xtensa-lx106-elf-ar
     CC      = $(WRAPCC) xtensa-lx106-elf-gcc
@@ -351,6 +357,8 @@ $(TOP_DIR)/sdk/.extracted-$(SDK_VER): $(TOP_DIR)/cache/$(SDK_FILE_VER).zip
 $(TOP_DIR)/sdk/.pruned-$(SDK_VER):
 	rm -f $(SDK_DIR)/lib/liblwip.a $(SDK_DIR)/lib/libssl.a $(SDK_DIR)/lib/libmbedtls.a
 	$(summary) PRUNE libmain.a libc.a
+	$(info $(OS))
+	$(info $(PATH))
 	# On Make <=3.81 (such as MacOS provides) these commands need to be run
 	# in shells rather than directly by Make, so that $(AR) is found using
 	# the updated `PATH` that is computed above.
