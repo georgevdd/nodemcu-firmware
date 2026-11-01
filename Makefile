@@ -89,6 +89,8 @@ ifndef $(OS)
   # Assume Windows if MAKE_HOST contains "indows" and Linux otherwise
   ifneq (,$(findstring indows,$(MAKE_HOST)))
     OS := windows
+  else ifeq (Darwin, $(shell uname -s))
+    OS := macos
   else
     OS := linux
   endif
@@ -129,6 +131,8 @@ ifneq (,$(findstring indows,$(OS)))
   ifeq ($(PROCESSOR_ARCHITECTURE),x86)
 # ->IA32
   endif
+
+  GNU_SED = sed
   #---------------- END UNTESTED ---------------- We are under windows.
 else
   # We are under other system, may be Linux. Assume using gcc.
@@ -140,9 +144,20 @@ else
       TOOLCHAIN_VERSION = 20190731.0
       GCCTOOLCHAIN      = linux-x86_64-$(TOOLCHAIN_VERSION)
       TOOLCHAIN_ROOT    = $(TOP_DIR)/tools/toolchains/esp8266-$(GCCTOOLCHAIN)
-      GITHUB_TOOLCHAIN  = https://github.com/jmattsson/esp-toolchains
+      GITHUB_TOOLCHAIN_REPO  = https://github.com/jmattsson/esp-toolchains
+      GITHUB_TOOLCHAIN = $(GITHUB_TOOLCHAIN_REPO)/releases/download/$(GCCTOOLCHAIN)/toolchain-esp8266-$(GCCTOOLCHAIN).tar.xz
       export PATH:=$(PATH):$(TOOLCHAIN_ROOT)/bin
     endif
+    GNU_SED = sed
+  else ifeq ($(OS), macos)
+    TOOLCHAIN_KIND := espressif-ctng
+    ifndef TOOLCHAIN_ROOT
+      $(error TOOLCHAIN_ROOT must point to an Espressif crosstool-NG toolchain)
+    endif
+    export PATH:=$(PATH):$(TOOLCHAIN_ROOT)/bin
+    # To get this:
+    #   brew install gnu-sed
+    GNU_SED = gsed
   endif
 
   ifndef COMPORT
@@ -430,7 +445,7 @@ $(OBJODIR)/%.d: %.c
 	$(summary) DEPEND: CC $(patsubst $(TOP_DIR)/%,%,$(CURDIR))/$<
 	@set -e; rm -f $@; \
 	$(CC) -M $(CFLAGS) $< > $@.$$$$; \
-	sed 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
+	$(GNU_SED) 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 $(OBJODIR)/%.o: %.cpp
@@ -442,7 +457,7 @@ $(OBJODIR)/%.d: %.cpp
 	@mkdir -p $(OBJODIR);
 	$(summary) DEPEND: CXX $(patsubst $(TOP_DIR)/%,%,$(CURDIR))/$<
 	@set -e; rm -f $@; \
-	sed 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
+	$(GNU_SED) 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 $(OBJODIR)/%.o: %.s
@@ -454,7 +469,7 @@ $(OBJODIR)/%.d: %.s
 	@mkdir -p $(dir $@); \
 	set -e; rm -f $@; \
 	$(CC) -M $(CFLAGS) $< > $@.$$$$; \
-	sed 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
+	$(GNU_SED) 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 $(OBJODIR)/%.o: %.S
@@ -466,7 +481,7 @@ $(OBJODIR)/%.d: %.S
 	@mkdir -p $(dir $@); \
 	set -e; rm -f $@; \
 	$(CC) -M $(CFLAGS) $< > $@.$$$$; \
-	sed 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
+	$(GNU_SED) 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 $(foreach lib,$(GEN_LIBS),$(eval $(call ShortcutRule,$(lib),$(LIBODIR))))

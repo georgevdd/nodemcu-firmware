@@ -8,8 +8,25 @@
 
 summary ?= @true
 
+ifndef $(OS)
+  # Assume Windows if MAKE_HOST contains "indows" and Linux otherwise
+  ifneq (,$(findstring indows,$(MAKE_HOST)))
+    OS := windows
+  else ifeq (Darwin, $(shell uname -s))
+    OS := macos
+  else
+    OS := linux
+  endif
+endif
+
+ifeq ($(OS),macos)
+  LD_MAPFILE_PARAM := -map,
+else
+  LD_MAPFILE_PARAM := -Map=
+endif
+
 CCFLAGS:= -I. -I.. -I../../include -I../../uzlib -I../..
-LDFLAGS:= -L$(SDK_DIR)/lib -L$(SDK_DIR)/ld -lm -ldl -Wl,-Map=mapfile
+LDFLAGS:= -L$(SDK_DIR)/lib -L$(SDK_DIR)/ld -lm -ldl -Wl,$(LD_MAPFILE_PARAM)mapfile
 
 CCFLAGS += -Wall
 
