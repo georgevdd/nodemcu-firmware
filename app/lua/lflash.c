@@ -346,7 +346,7 @@ static void put_byte (uint8_t value) {
 }
 
 
-static uint8_t recall_byte (unsigned offset) {
+static uint8_t recall_byte (uint32_t offset) {
   if(offset > DICTIONARY_WINDOW || offset >= out->ndx)
     flash_error("invalid dictionary offset on inflate");
   /* ndx starts at 1. Need relative to 0 */
@@ -386,7 +386,7 @@ void procFirstPass (void) {
          fh->flash_size > flashSize ||
          out->flagsLen != 1 + (out->flashLen/WORDSIZE - 1) / BITS_PER_WORD)
       flash_error("LFS length mismatch");
-    out->flags = luaM_newvector(out->L, out->flagsLen, unsigned);
+    out->flags = (uint32_t*) luaM_newvector(out->L, out->flagsLen, unsigned);
   }
 
   /* update running CRC */

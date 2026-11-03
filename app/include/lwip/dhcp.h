@@ -49,6 +49,10 @@ struct dhcp
   u16_t request_timeout; /* #ticks with period DHCP_FINE_TIMER_SECS for request timeout */
   u16_t t1_timeout;  /* #ticks with period DHCP_COARSE_TIMER_SECS for renewal time */
   u16_t t2_timeout;  /* #ticks with period DHCP_COARSE_TIMER_SECS for rebind time */
+  u16_t t1_renew_time;  /* #ticks with period DHCP_COARSE_TIMER_SECS until next renew try */
+  u16_t t2_rebind_time; /* #ticks with period DHCP_COARSE_TIMER_SECS until next rebind try */
+  u16_t lease_used; /* #ticks with period DHCP_COARSE_TIMER_SECS since last received DHCP ack */
+  u16_t t0_timeout; /* #ticks with period DHCP_COARSE_TIMER_SECS for lease time */
   ip_addr_t server_ip_addr; /* dhcp server address that offered this lease */
   ip_addr_t offered_ip_addr;
   ip_addr_t offered_sn_mask;
@@ -123,6 +127,8 @@ void dhcp_stop(struct netif *netif);
 void dhcp_inform(struct netif *netif);
 /** Handle a possible change in the network configuration */
 void dhcp_network_changed(struct netif *netif);
+
+err_t dhcp_set_vendor_class_identifier(uint8_t len, char *str);
 
 /** if enabled, check whether the offered IP address is not in use, using ARP */
 #if DHCP_DOES_ARP_CHECK

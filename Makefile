@@ -167,12 +167,31 @@ else
   endif
 
   CCFLAGS += -ffunction-sections -fno-jump-tables -fdata-sections
-  AR      = xtensa-lx106-elf-ar
-  CC      = $(WRAPCC) xtensa-lx106-elf-gcc
-  CXX     = $(WRAPCC) xtensa-lx106-elf-g++
-  NM      = xtensa-lx106-elf-nm
-  CPP     = $(WRAPCC) xtensa-lx106-elf-gcc -E
-  OBJCOPY = xtensa-lx106-elf-objcopy
+
+  ifeq ($(TOOLCHAIN_KIND),espressif-ctng)
+    ifndef TOOLCHAIN_ROOT
+      $(error TOOLCHAIN_ROOT must point to an Espressif crosstool-NG toolchain)
+    endif
+
+    AR      = xtensa-esp8266-elf-ar
+    CC      = $(WRAPCC) xtensa-esp8266-elf-gcc
+    CXX     = $(WRAPCC) xtensa-esp8266-elf-g++
+    NM      = xtensa-esp8266-elf-nm
+    CPP     = $(WRAPCC) xtensa-esp8266-elf-gcc -E
+    OBJCOPY = xtensa-esp8266-elf-objcopy
+    # Configure the toolchain to use the ESP8266 plugin.
+    CCFLAGS += -mdynconfig=$(TOOLCHAIN_ROOT)/lib/xtensa_esp8266.so
+    LDFLAGS += -mdynconfig=$(TOOLCHAIN_ROOT)/lib/xtensa_esp8266.so
+
+    export PATH:=$(PATH):$(TOOLCHAIN_ROOT)/bin
+  else
+    AR      = xtensa-lx106-elf-ar
+    CC      = $(WRAPCC) xtensa-lx106-elf-gcc
+    CXX     = $(WRAPCC) xtensa-lx106-elf-g++
+    NM      = xtensa-lx106-elf-nm
+    CPP     = $(WRAPCC) xtensa-lx106-elf-gcc -E
+    OBJCOPY = xtensa-lx106-elf-objcopy
+  endif
   FIRMWAREDIR = ../bin/
   WGET = wget --tries=10 --timeout=15 --waitretry=30 --read-timeout=20 --retry-connrefused
 endif
@@ -348,6 +367,8 @@ $(TOP_DIR)/sdk/.extracted-$(SDK_VER): $(TOP_DIR)/cache/$(SDK_FILE_VER).zip
 $(TOP_DIR)/sdk/.pruned-$(SDK_VER):
 	rm -f $(SDK_DIR)/lib/liblwip.a $(SDK_DIR)/lib/libssl.a $(SDK_DIR)/lib/libmbedtls.a
 	$(summary) PRUNE libmain.a libc.a
+	$(info $(OS))
+	$(info $(PATH))
 	# On Make <=3.81 (such as MacOS provides) these commands need to be run
 	# in shells rather than directly by Make, so that $(AR) is found using
 	# the updated `PATH` that is computed above.

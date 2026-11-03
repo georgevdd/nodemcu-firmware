@@ -7,3 +7,6 @@
 [submodule "app/libc/c99-snprintf"]
 	path = app/libc/c99-snprintf
 	url = https://github.com/weiss/c99-snprintf.git
+[submodule "app/esp-gdbstub/lx106-hal"]
+	path = app/esp-gdbstub/lx106-hal
+	url = https://github.com/tommie/lx106-hal.git

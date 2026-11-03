@@ -282,7 +282,7 @@ static void ICACHE_RAM_ATTR insert_active_tu(timer_user *tu) {
 *                uint32 ticks :
 * Returns      : true if it worked
 *******************************************************************************/
-bool ICACHE_RAM_ATTR platform_hw_timer_arm_ticks(os_param_t owner, uint32_t ticks)
+bool /*ICACHE_RAM_ATTR*/ platform_hw_timer_arm_ticks(os_param_t owner, uint32_t ticks)
 {
   if (reserved_exclusively) return false;
 
@@ -317,7 +317,7 @@ bool ICACHE_RAM_ATTR platform_hw_timer_arm_ticks(os_param_t owner, uint32_t tick
 *                         10 ~ 0x7fffff;
 * Returns      : true if it worked
 *******************************************************************************/
-bool ICACHE_RAM_ATTR platform_hw_timer_arm_us(os_param_t owner, uint32_t microseconds)
+bool /*ICACHE_RAM_ATTR*/ platform_hw_timer_arm_us(os_param_t owner, uint32_t microseconds)
 {
   return platform_hw_timer_arm_ticks(owner, US_TO_RTC_TIMER_TICKS(microseconds));
 }
@@ -404,7 +404,7 @@ static void ICACHE_RAM_ATTR hw_timer_nmi_cb(void)
 * Parameters   : os_param_t owner
 * Returns      : the number of ticks
 *******************************************************************************/
-uint32_t ICACHE_RAM_ATTR platform_hw_timer_get_delay_ticks(os_param_t owner)
+uint32_t /*ICACHE_RAM_ATTR*/ platform_hw_timer_get_delay_ticks(os_param_t owner)
 {
   if (reserved_exclusively) return 0;
 
@@ -477,7 +477,7 @@ bool platform_hw_timer_init(os_param_t owner, FRC1_TIMER_SOURCE_TYPE source_type
 * Parameters   : os_param_t owner.
 * Returns      : true if it worked
 *******************************************************************************/
-bool ICACHE_RAM_ATTR platform_hw_timer_close(os_param_t owner)
+bool /*ICACHE_RAM_ATTR*/ platform_hw_timer_close(os_param_t owner)
 {
   if (reserved_exclusively) return false;
 
@@ -553,7 +553,7 @@ bool platform_hw_timer_init_exclusive(
 * Parameters   :
 * Returns      : true if it worked
 *******************************************************************************/
-bool ICACHE_RAM_ATTR platform_hw_timer_close_exclusive()
+bool /*ICACHE_RAM_ATTR*/ platform_hw_timer_close_exclusive()
 {
   if (!reserved_exclusively) return true;
   reserved_exclusively = false;
@@ -573,7 +573,7 @@ bool ICACHE_RAM_ATTR platform_hw_timer_close_exclusive()
 * Parameters   : uint32 ticks :
 * Returns      : true if it worked
 *******************************************************************************/
-bool ICACHE_RAM_ATTR platform_hw_timer_arm_ticks_exclusive(uint32_t ticks)
+bool /*ICACHE_RAM_ATTR*/ platform_hw_timer_arm_ticks_exclusive(uint32_t ticks)
 {
   RTC_REG_WRITE(FRC1_LOAD_ADDRESS, ticks);
   return true;
@@ -590,7 +590,7 @@ bool ICACHE_RAM_ATTR platform_hw_timer_arm_ticks_exclusive(uint32_t ticks)
 *                         10 ~ 0x7fffff;
 * Returns      : true if it worked
 *******************************************************************************/
-bool ICACHE_RAM_ATTR platform_hw_timer_arm_us_exclusive(uint32_t microseconds)
+bool /*ICACHE_RAM_ATTR*/ platform_hw_timer_arm_us_exclusive(uint32_t microseconds)
 {
   RTC_REG_WRITE(FRC1_LOAD_ADDRESS, US_TO_RTC_TIMER_TICKS(microseconds));
   return true;

@@ -140,7 +140,7 @@ static __attribute__((always_inline)) inline  void step_down(DATA *d)
   write_io(d);
 }
 
-static void ICACHE_RAM_ATTR timer_interrupt(os_param_t p)
+static void /*ICACHE_RAM_ATTR*/ timer_interrupt(os_param_t p)
 {
   // This function really is running at interrupt level with everything
   // else masked off. It should take as little time as necessary.
