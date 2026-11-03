@@ -38,6 +38,7 @@ endif
 #
 
 INCLUDES += -I ../../include/ets
+INCLUDES += -I lx106-hal/include
 PDIR := ../$(PDIR)
 sinclude $(PDIR)Makefile
 
