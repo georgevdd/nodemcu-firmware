@@ -42,10 +42,22 @@ do
         -- end response headers
         csend("\r\n")
       end
+
       -- chunked transfer encoding
-      csend(("%X\r\n"):format(#data))
-      csend(data)
-      csend("\r\n")
+      if type(data) == "function" then
+        local function chunks()
+          local chunk, more
+          chunk, data = data()
+          if data then more = chunks else more = nil end
+          if chunk then return ("%X\r\n%s\r\n"):format(#chunk, chunk), more end
+        end
+        csend(chunks)
+      else
+        csend(("%X\r\n"):format(#data))
+        csend(data)
+        csend("\r\n")
+      end
+
     end
    end
 
