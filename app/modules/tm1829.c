@@ -72,7 +72,7 @@ static int ICACHE_FLASH_ATTR tm1829_write(lua_State* L)
   const uint8_t *pixels;
   size_t length;
 
-  switch(lua_type(L, 3)) {
+  switch(lua_type(L, 2)) {
   case LUA_TSTRING: {
     pixels = luaL_checklstring(L, 2, &length);
     break;
