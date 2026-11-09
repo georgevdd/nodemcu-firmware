@@ -4,11 +4,30 @@ George van den Driessche, 2026
 
 ## Motivation
 
-Programming complex patterns using the existing `pixbuf.buffer` API is possible, but high frame rates quickly become unachievable if a large number of lights are involved. This is largely because the cost of converting Lua parameters to C values is high. To set every third pixel (for example) in a buffer, the existing API requires calling `:set()` on each of those pixels individually. There is no way to make an object that refers to "every third pixel of this buffer" and then call `:set()` on that object.
+Programming complex patterns using the existing `pixbuf.buffer` API is possible, but high frame rates quickly become unachievable if a large number of lights are involved. This is largely because the cost of converting Lua parameters to C values is high. To set every third pixel (for example) in a buffer, the existing API requires calling `:set()` on each of those pixels individually. There is no way to make an object that refers to "every third pixel of this buffer" and then call `:fill()` on that object.
 
 Some `buffer` methods have begun to grow ways of addressing sub-buffers (e.g. `:shift()`) but this kind of support is ad-hoc, limited and inconsistent.
 
-Existing techniques can be appropriated from other fields to give a rich, combinatoric vocabulary for describing efficient operations on subsets of pixels.
+This paper describes how existing techniques can be appropriated from other fields to give a rich, combinatoric vocabulary for describing efficient operations on subsets of pixels.
+
+Just for one example, using a strided slice to fill 50 pixels at once is about 18 times faster than setting them individually:
+
+```lua
+pixbuf = require'pixbuf'
+
+buf = pixbuf.newBuffer(100, 4)
+
+benchmark(function()  -- ~4680µs
+  for i = 1, buf:size(), 2 do
+      buf:set(i, 0xff, 0, 0, 0)
+  end
+end)
+
+local fifty = buf:slice(1, buf:size(), 2)
+benchmark(function()  -- ~250µs
+  fifty:fill(0xff, 0, 0, 0)
+end)
+```
 
 ## Design
 
