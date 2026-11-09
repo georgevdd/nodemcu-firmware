@@ -345,6 +345,8 @@ outbuf:map(function(...) return ... end, inbuf1, 5, 10, inbuf2, 3)
 If this buffer is a view of another buffer, return that other buffer.
 Otherwise return `nil`.
 
+See the [design of strided slices](../pixbuf-plus.md) for more details.
+
 #### Syntax
 `buffer:base()`
 
@@ -382,6 +384,8 @@ header userdata.
 A slice holds a reference to its base so that the lifespan of the buffer to
 which it points is at least as long as the lifespan of the slice itself.
 The reference can be retrieved using the `:base()` function.
+
+See the [design of strided slices](../pixbuf-plus.md) for more details.
 
 #### Syntax
 `buffer:slice([start], [stop], [step])`
@@ -427,6 +431,8 @@ to refer to a name or index that the buffer does not have.
 Since a channel view is itself a kind of buffer, it is possible to
 call `channel()` on it too. In that case names are not permitted and
 the only valid channel index is 1.
+
+See also the [design of strided slices](../pixbuf-plus.md).
 
 #### Returns
 A new buffer object that refers to a single channel of the original.
