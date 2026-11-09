@@ -29,6 +29,55 @@ benchmark(function()  -- ~250µs
 end)
 ```
 
+By treating subsets of buffers the same as entire buffers we can conveniently and efficiently make LED strips do fun things like:
+
+- scroll the odd pixels one way and scroll the even pixels the other way;
+- have the red channel behave completely independently from the green channel and the blue channel;
+- have different chunks of the same strip behave independently from each other;
+- scroll a pattern neatly from one strip to another, even though the strips are attached to different I/O pins and one of them is reversed.
+
+## How Strides Work
+
+Suppose we have a base three-channel GRB `pixbuf`. Each pixel's green, red and blue values are stored in successive bytes in memory, and the pixels are stored contiguously too. To calculate a (zero-indexed) byte offset that will address the GRB values for, say, pixel 4 (again zero-indexed) we need to multiply 4 by the number of channels (`nchan`):
+
+```
+            vvv
+GRBGRBGRBGRBGRBGRB
+|  |  |  |  |
+0  3  6  9  12 
+```
+
+We can say that the `stride` of this buffer - the offset in bytes between successive pixels - is 3, the same as its `nchan`. That's the only possible case today because `pixbuf` doesn't store an explicit stride separate from `nchan`.
+
+By allowing a `pixbuf` to refer to an existing buffer, and then storing an explicit `stride`, we can create views of
+buffers that describe interesting selections of the pixels and their channels.
+
+For example, a view of the above buffer with `stride = 2 * nchan = 6` will select every other pixel:
+
+```
+vvv   vvv   vvv
+GRBGRBGRBGRBGRBGRB
+|  |  |  |  |
+0  3  6  9  12 
+```
+
+Some other possible settings for a view of a three-channel buffer:
+
+| `stride` | `nchan` | Meaning | Comparable Pseudo-Python
+| --- | --- | --- | --- |
+ 9 | 3 | Every third pixel | `buf[::3]`
+| -3 | 3 | Every pixel, in reverse order | `buf[::-1] `
+| 3 | 1 | Just the green channel of every pixel | `buf.green`
+
+The idea is comparable to the `step` parameter in loops, ranges and comprehensions of many programming languages:
+
+| Language | Example
+| --- | ---
+| Lua | `for i = 1,9,3`
+| Python | `for i in range(1, 10, 3):`
+| Python | `my_list[1:10:3]`
+| BBC BASIC | `FOR Count%=1 TO 9 STEP 3`
+
 ## Design
 
 A series of steps introduce progressively richer vocabulary for manipulating `pixbuf.buffer` arrays, without substantially enlarging the buffer API or complicating its existing methods much.
