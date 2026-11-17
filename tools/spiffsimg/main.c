@@ -417,7 +417,7 @@ int main (int argc, char *argv[])
       else if (strncmp (line, "import ", 7) == 0)
       {
         char *src = 0, *dst = 0;
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__APPLE__)
         src = (char*)malloc(260 + 1);	//MAX_PATH
         dst = (char*)malloc( 260 + 1 );
         if (sscanf (line +7, " %260s %260s", src, dst) != 2)
@@ -436,7 +436,7 @@ int main (int argc, char *argv[])
       else if (strncmp (line, "export ", 7) == 0)
       {
         char *src = 0, *dst = 0;
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__APPLE__)
         src = (char*)malloc( 260 + 1 );	//MAX_PATH
         dst = (char*)malloc( 260 + 1 );
         if ( sscanf( line + 7, " %260s %260s", src, dst ) != 2 )
