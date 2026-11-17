@@ -202,6 +202,8 @@ static os_timer_t mdns_timer;
 static void mdns_recv(void *s, struct udp_pcb *pcb, struct pbuf *p,
 		struct ip_addr *addr, u16_t port);
 
+struct netif * eagle_lwip_getif(uint8 index);
+
 /*-----------------------------------------------------------------------------
  * Globales
  *----------------------------------------------------------------------------*/
@@ -317,12 +319,12 @@ static err_t send_packet(struct pbuf *p, struct ip_addr *dst_addr, u16_t dst_por
   if (addr_ptr) {
     if (wifi_get_opmode() == 0x02) {
       if (!ap_netif) {
-	return;
+	return ERR_CONN;
       }
       memcpy(addr_ptr, &ap_netif->ip_addr, sizeof(ap_netif->ip_addr));
     } else {
       if (!sta_netif) {
-	return;
+	return ERR_CONN;
       }
       memcpy(addr_ptr, &sta_netif->ip_addr, sizeof(sta_netif->ip_addr));
     }

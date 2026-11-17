@@ -854,7 +854,7 @@ uint32_t platform_s_flash_write( const void *from, uint32_t toaddr, uint32_t siz
     memcpy(apbuf, from, size);
   }
   system_soft_wdt_feed ();
-  r = flash_write(toaddr, apbuf?(uint32_t *)apbuf:(uint32_t *)from, size);
+  r = flash_write(toaddr, apbuf?(uint32 *)apbuf:(uint32 *)from, size);
   if(apbuf)
     free(apbuf);
   if(SPI_FLASH_RESULT_OK == r)
@@ -882,7 +882,7 @@ uint32_t platform_s_flash_read( void *to, uint32_t fromaddr, uint32_t size )
   if( ((uint32_t)to) & blkmask )
   {
     uint32_t size2=size-INTERNAL_FLASH_READ_UNIT_SIZE;
-    uint32_t* to2=(uint32_t*)((((uint32_t)to)&(~blkmask))+INTERNAL_FLASH_READ_UNIT_SIZE);
+    uint32* to2=(uint32*)((((uint32_t)to)&(~blkmask))+INTERNAL_FLASH_READ_UNIT_SIZE);
     r = flash_read(fromaddr, to2, size2);
     if(SPI_FLASH_RESULT_OK == r)
     {
@@ -893,7 +893,7 @@ uint32_t platform_s_flash_read( void *to, uint32_t fromaddr, uint32_t size )
     }
   }
   else
-    r = flash_read(fromaddr, (uint32_t *)to, size);
+    r = flash_read(fromaddr, (uint32 *)to, size);
 
   if(SPI_FLASH_RESULT_OK == r)
     return size;

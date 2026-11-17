@@ -81,6 +81,7 @@ void *pvPortZallocIram (size_t sz, const char *, unsigned);
 #ifndef mem_free
 #define mem_free(s)      vPortFree(s, mem_debug_file, __LINE__)
 #endif
+
 #ifndef mem_malloc
 #define mem_malloc(s)   pvPortMalloc(s, mem_debug_file, __LINE__,false)
 #endif
@@ -97,7 +98,11 @@ void *pvPortZallocIram (size_t sz, const char *, unsigned);
 #endif
 
 #ifndef os_malloc
-#define os_malloc(s) mem_malloc((s))
+#ifndef MEMLEAK_DEBUG
+#define os_malloc(s) pvPortMalloc(s, "", __LINE__,true)
+#else
+#define os_malloc(s) pvPortMalloc(s, mem_debug_file, __LINE__,true)
+#endif
 #endif
 #ifndef os_realloc
 #define os_realloc(p, s) mem_realloc((p), (s))

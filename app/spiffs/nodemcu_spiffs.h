@@ -24,5 +24,5 @@
 
 #define SPIFFS_SECURE_ERASE         0
 
-extern void myspiffs_set_automount();
+extern void myspiffs_set_automount(void (*mounter)());
 #endif

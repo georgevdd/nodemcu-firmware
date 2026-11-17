@@ -39,7 +39,9 @@
 #ifdef SHA2_ENABLE
 #include "sha2.h"
 #include <string.h>	/* memcpy()/memset() or bcopy()/bzero() */
-#define assert(x) do {} while (0)
+#if !defined(assert)
+#  define assert(x) do {} while (0)
+#endif
 
 /*
  * ASSERT NOTE:

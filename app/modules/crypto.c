@@ -199,7 +199,7 @@ static int crypto_hash_finalize (lua_State *L)
   return 1;
 }
 
-static sint32_t vfs_read_wrap (int fd, void *ptr, size_t len)
+static int32_t vfs_read_wrap (int fd, void *ptr, size_t len)
 {
   return vfs_read (fd, ptr, len);
 }

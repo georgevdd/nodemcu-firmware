@@ -18,6 +18,12 @@
 #include "gdbstub-entry.h"
 #include "gdbstub-cfg.h"
 
+#ifndef XCHAL_DEBUGLEVEL
+# define XCHAL_DEBUGLEVEL __XCHAL_DEBUGLEVEL
+#endif
+
+void ets_wdt_disable();
+void ets_wdt_enable();
 
 //From xtruntime-frames.h
 struct XTensa_exception_frame_s {
